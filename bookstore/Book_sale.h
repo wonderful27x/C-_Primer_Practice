@@ -6,9 +6,8 @@
 
 //C++_Primer书店程序
 //前置声明，hash友元声明需要 page 628 589
-//todo 去掉声明会怎么样，网上的样例就没有
 //!!!实际测试中发现前置声明导致编译错误，去掉则没问题？？？
-template<class T> class std::hash;
+//template<class T> class std::hash;
 class Book_sale {
 	//我们将会特例化hash<Book_sale>模板，为无序容器提供对Book_sale类的支持
 	//将hash设置为友元，hash模板将使用Book_sale私有数据
@@ -115,23 +114,23 @@ struct hash<Book_sale>
 //是不唯一的，所以我们不为其定义重载的<关系运算符，而是定义一个通过书本编号进行比较的普通函数
 inline
 bool compareIsbn(const Book_sale &lhs, const Book_sale &rhs) {
-	return lhs.isbn() < rhl.isbn();
+	return lhs.isbn() < rhs.isbn();
 }
 
 //运算符重载的比较函数，非成员函数
 //相等运算符通常定义为非成员函数
 inline
 bool operator==(const Book_sale &lhs, const Book_sale &rhs) {
-	return hls.isbn() == rhs.isbn() &&
+	return lhs.isbn() == rhs.isbn() &&
 	       lhs.units_sold == rhs.units_sold &&
-	       hls.revenue == rhs.revenue;
+	       lhs.revenue == rhs.revenue;
 }
 
 //运算符重载的比较函数，非成员函数
 //定义了==，通常也需要定义!=，而!=依托于==
 inline 
 bool operator!=(const Book_sale &lhs, const Book_sale &rhs) {
-	return !(lhs == rhls);
+	return !(lhs == rhs);
 }
 
 //注意命名空间、友元声明和实参相关查找有这样的规则:

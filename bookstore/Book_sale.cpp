@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "Book_sale.h"
+#include "bookexcept.h"
 
 //using声明，一次引入命名空间中一个成员
 //作用范围：从声明开始到声明所在作用域结束,
@@ -27,6 +28,7 @@ Book_sale &Book_sale::operator+=(const Book_sale &rhs) {
 		throw isbn_mismatch("wrong isbns", isbn(), rhs.isbn());
 	units_sold += rhs.units_sold;
 	revenue += rhs.revenue;
+
 	return *this;
 }
 
@@ -42,6 +44,7 @@ Book_sale operator+(const Book_sale &lhs, const Book_sale &rhs) {
 	//也可以通过函数名调用：
 	//sum.operator+=(rhl);
 	sum += rhs;
+
 	return sum;
 }	
 
@@ -85,6 +88,7 @@ istream &operator>>(istream &is, Book_sale &item) {
 		//注意这里并不是要将引用item绑定到另一个对象(这是不允许的),这里就相当于通过引用改变对象的值
 		//只不过这里实际是在调用合成的拷贝赋值运算符
 		item = Book_sale();
+
 	return is;
 }
 
@@ -92,6 +96,7 @@ istream &operator>>(istream &is, Book_sale &item) {
 ostream &operator<<(ostream &os, const Book_sale &item) {
 	os << item.isbn() << " " << item.units_sold << " "
 	   << item.revenue << " " << item.avg_price();
+
 	return os;
 }	
 
@@ -100,13 +105,15 @@ istream &read(istream &is, Book_sale &item) {
 	double price = 0;
 	is >> item.bookNo >> item.units_sold >> price;
 	item.revenue = price * item.units_sold;
+
 	return is;
 }
 
 //普通函数版本的输出
-ostream &print(ostream &os, const Book_sale) {
+ostream &print(ostream &os, const Book_sale &item) {
 	os << item.isbn() << " " << item.units_sold << " "
 	   << item.revenue << " " << item.avg_price();
+
 	return os;
 }
 
@@ -114,5 +121,6 @@ ostream &print(ostream &os, const Book_sale) {
 Book_sale add(const Book_sale &lhs, const Book_sale &rhs) {
 	Book_sale sum = lhs;
 	sum += rhs;
+
 	return sum;
 }

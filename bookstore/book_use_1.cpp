@@ -1,4 +1,5 @@
 #include <iostream>
+
 #include "Book_sale.h"
 #include "bookexcept.h"
 
@@ -10,7 +11,9 @@ using std::endl;
 int main(int argc, char **argv) {
 	Book_sale item1,item2,sum;
 	//从输入构造两个Book_sale
-	while(cin >> item2 >> item2) {
+	cout << "请输入销售记录，格式： 书本编号(string) 销售数量(unsigned) 单价(double), ctrl+d 退出" << endl;
+	while(cin >> item1 >> item2) {
+		cout << "input 2 records: " << item1 << ", " << item2 << endl; 
 		//+调用+=，+=有异常抛出语句
 		//throw isbn_mismatch("wrong isbns", isbn(), rhs.isbn());
 		//throw 表达式引发一个异常，throw后面的语句不在被执行
@@ -40,10 +43,13 @@ int main(int argc, char **argv) {
 		try {
 			//将两个销售记录相加
 			sum = item1 + item2;
-		} catch(const isbn_mismatch &e) {
+			cout << "total book sales: " << sum << endl;
+		}catch(const isbn_mismatch &e) {
 			cerr << e.what() << ": left isbn(" << e.left
 			     << ") right isbn(" << e.right << ")" << endl;
 		}
 	}
+	cout << "total book sales: " << sum << endl;
+
 	return 0;
 }
