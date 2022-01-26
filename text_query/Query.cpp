@@ -23,7 +23,7 @@ QueryResult NotQuery::eval(const TextQuery &text) const {
 	//下面的ret_lines指向一个值初始化的set<line_no>,空的set
 	auto ret_lines = make_shared<set<line_no>>();
 	auto beg = result.begin(), end = result.end();
-	auto sz = result.ret_file()->size();
+	auto sz = result.get_file()->size();
 	//循环文本每一个行号，判断查询结果中出现
 	for(size_t n = 0; n != sz; ++n) {
 		//如果不相等，或result已经循环完了，
@@ -37,7 +37,7 @@ QueryResult NotQuery::eval(const TextQuery &text) const {
 	}
 	
 	//返回最终结果
-	return QueryResult(rep(), ret_lines, result,get_file());
+	return QueryResult(rep(), ret_lines, result.get_file());
 }
 
 //&查询操作，两个查询对象结果的交集
@@ -54,7 +54,7 @@ QueryResult AndQuery::eval(const TextQuery &text) const {
 	//因此在下面的算法中我们必须使用inserter构造一个特殊的插入迭代器，
 	//这样算法才能通过插入迭代器间接插入元素
 	set_intersection(left.begin(), left.end(),
-			rigth.begin(), right.end(),
+			right.begin(), right.end(),
 			inserter(*ret_lines, ret_lines->begin()));
 
 	return QueryResult(rep(), ret_lines, left.get_file());

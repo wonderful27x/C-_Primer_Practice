@@ -6,7 +6,7 @@
 #include <iostream>
 
 inline std::string make_plural(std::size_t ctr, const std::string &word, const std::string &endling) {
-	return (ctr > 1) ? word + ending : word;
+	return (ctr > 1) ? word + endling : word;
 }
 
 #endif

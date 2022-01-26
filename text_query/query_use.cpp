@@ -7,6 +7,9 @@
 #include <cctype>
 #include <cstring>
 
+#include "Query.h"
+#include "TextQuery.h"
+
 using std::set;
 using std::string;
 using std::map;
@@ -26,11 +29,11 @@ int main(int argc, char **argv) {
 	and_query(argc, argv);
 	and_or_query(argc, argv);
 
-	return;
+	return 0;
 }
 
 void word_query(int argc, char **argv) {
-	cout << "word_query use..." << endl;
+	cout << "\n============word_query use...=============" << endl;
 	TextQuery file = get_file(argc, argv);
 	do {
 		string sought;
@@ -38,12 +41,12 @@ void word_query(int argc, char **argv) {
 		Query name(sought);
 		const auto results = name.eval(file);
 		cout << "\nExecuting Query for: " << name << endl;
-		print(cout, result) << endl;
+		print(cout, results) << endl;
 	}while(true);
 }
 
 void and_query(int argc, char **argv) {
-	cout << "and_query use..." << endl;
+	cout << "\n===========and_query use...===============" << endl;
 	TextQuery file = get_file(argc, argv);
 	do {
 		string sought1, sought2;
@@ -54,19 +57,19 @@ void and_query(int argc, char **argv) {
 		print(cout, results);
 
 		results = Query(sought1).eval(file);
-		cout << "\nExecuting query: " << Query(sought1) << endl;
+		Query q1(sought1);
+		cout << "\nExecuting query: " << q1 << endl;
 		print(cout, results);
 
-		results = Query(southt2).eval(file);
-		cout << "\nExecuting query: " << Query(sought2) << endl;
+		results = Query(sought2).eval(file);
+		Query q2(sought2);
+		cout << "\nExecuting query: " << q2 << endl;
 		print(cout, results);
 	}while(true);
-
-	return 0;
 }
 
 void and_or_query(int argc, char **argv) {
-	cout << "and_or_query..." << endl;
+	cout << "\n===============and_or_query...=================" << endl;
 	TextQuery file = get_file(argc, argv);
 	while(true) {
 		string sought1, sought2, sought3;
@@ -78,6 +81,4 @@ void and_or_query(int argc, char **argv) {
 		const auto results = q.eval(file);
 		print(cout, results);
 	}
-
-	return 0;
 }

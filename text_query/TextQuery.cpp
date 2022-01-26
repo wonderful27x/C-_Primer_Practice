@@ -69,7 +69,7 @@ TextQuery::TextQuery(ifstream &is) : file(new vector<string>) {
 			auto &lines = wm[word];
 			//所以第一下标操作的line保存空指针，
 			//reset让其指向新的对象,此时创建了保存行号的set
-			if(!line) lines.reset(new set<line_no>);
+			if(!lines) lines.reset(new set<line_no>);
 			//单词所在的行号插入set
 			//因为set是关键字不重复，且对关键字有序的容器
 			//当同一行有多个相同的单词时多次insert相同的关键字不会其作用
@@ -91,7 +91,7 @@ TextQuery::TextQuery(ifstream &is) : file(new vector<string>) {
 //ok,haha
 string TextQuery::cleanup_str(const string &word) {
 	string ret;
-	for(auto it=word.begin(); it!=word.end(); ++i) {
+	for(auto it=word.begin(); it!=word.end(); ++it) {
 		//如果不是标点符号则转换为小写
 		if(!ispunct(*it))
 			ret += tolower(*it);
@@ -101,10 +101,10 @@ string TextQuery::cleanup_str(const string &word) {
 }
 
 //查找一个单词在文本中出现的行号
-QueryResult TextQuery::query(const string &sought) {
+QueryResult TextQuery::query(const string &sought) const {
 	//如果没有找到，返回一个空的
 	//局部静态对象在程序执行第一次经过其定义时初始化，直到程序终止才销毁
-	static shared_ptr<set<line_no>> nodata(new set<line>);
+	static shared_ptr<set<line_no>> nodata(new set<line_no>);
 	//auto（page 62,推演类型并不简单，需要多看书研究）
 	//1.auto让编译其通过初始值来推算变量的类型，在复杂类型或不知道是什么类型时很有用
 	//在这里是一个迭代器类型: map<string,shared_ptr<set<line_no>>::iterator
@@ -137,7 +137,7 @@ QueryResult TextQuery::query(const string &sought) {
 	//find返回一个迭代器，指向第一个(对于可重复关键字的容器可能有多个结果)关键字为key的元素，
 	//如果没有找到则返回尾后迭代器
 	//这里不能用下标运算符号，因为下标运算符在容器没有此关键字时会创建一个然后插入容器
-	auto loc = wm.find(cleanupf_str(sought));
+	auto loc = wm.find(cleanup_str(sought));
 	//如果是尾后迭代器说明没有找到，返回一个空set的result
 	if(loc == wm.end())
 		return QueryResult(sought, nodata, file);

@@ -14,10 +14,10 @@ class QueryResult {
 public:
 	//自定义类型
 	typedef std::vector<std::string>::size_type line_no;
-	typedef std::set<line_no>::const_iterator line_t;
+	typedef std::set<line_no>::const_iterator line_it;
 	QueryResult(std::string s,
-		    std::shared<std::set<line_no>> p,
-		    std::shared<std::vector<std::string>> f) : 
+		    std::shared_ptr<std::set<line_no>> p,
+		    std::shared_ptr<std::vector<std::string>> f) : 
 		sought(s), lines(p), file(f) {}
 	//返回匹配的行数
 	//注意返回的时set的size，所以类型是set<>::size_type

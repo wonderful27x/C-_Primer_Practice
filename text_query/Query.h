@@ -87,7 +87,7 @@
 #include <sstream>
 #include <memory>
 
-#include "TextQuey.h"
+#include "TextQuery.h"
 
 //virtual虚函数
 //虚函数是实现动态绑定的关键，当调用基类指针或引用的虚函数时，将调用其真实派生类的版本
@@ -156,7 +156,7 @@ class Query {
 	friend Query operator&(const Query &, const Query &);
 public:
 	//string参数的构造函数用于创建单个查询的对象，即WordQuery
-	Query(const string &);
+	Query(const std::string &);
 	QueryResult eval(const TextQuery &t) const {
 		return q->eval(t);
 	}
@@ -192,6 +192,7 @@ inline std::ostream &operator<<(std::ostream &os, Query &query) {
 //WordQuery自己的成员都是私有的，因为我们不希望用户直接使用，而是通过Query类来间接操作
 class WordQuery : public Query_base {
 	friend class Query;
+	WordQuery(const std::string &s) : query_word(s) {}
 	//调用TextQuery查询
 	//使用override关键字显示注明它将覆盖基类虚函数
 	//使用override能在编译时帮我们找出一些错误,如参数列表或函数名不小心写错了，或不是virtual虚函数
