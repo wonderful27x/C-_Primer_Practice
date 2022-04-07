@@ -83,3 +83,59 @@ private:
 };
 
 #endif
+
+
+//==================================================附录=================================================
+//智能指针
+//	作用：简化指针的使用，避免忘记delete或程序异常catch时忘记释放内存造成内存泄露
+//	原理：利用RALL（资源获取即初始化）的技术对普通指针进行封装，智能指针实质是一个对象，在析构时对指针进行释放。
+//	注意：智能指针只能用来保存堆上分配的内存地址！
+//	link: https://www.cnblogs.com/wxquare/p/4759020.html
+//	
+//	shared_ptr: 多个指针指向相同的对象，使用引用计数，初始化和拷贝构造引用计数+1，赋值和析构引用计数-1，当为0时删除指向的堆内存
+//		注意：不要用同一个原始指针初始化多个shared_ptr,会造成二次释放同一内存
+//		注意：避免循环引用，会造成内存无法释放。(weak_ptr可以解决这个问题,即A和B内部都只持有对方的weak_ptr)
+//		注意：shared_ptr析构时默认调用delete,所以像std::shared_ptr<int> p(new int[12])会造成内存泄露，需要自定义析构
+//		void deleter(int *x){delete[] x;} std::shared_ptr<int> p(new int[12],deleter);
+//		线程安全性：1.多线程调用不同shared_ptr对象成员函数安全；2.多线程同时读同一个shared_ptr对象安全；3.多线程对同一个shared_ptr对象进行读和写不安全。
+//		int a = 10;
+//		std::shared_ptr<int> pa = std::make_shared<int>(a);//引用计数+1
+//		std::shared_ptr<int> pb(pa);  //copy,引用计数+1,pa.use_count() = pb.use_count() = 2;
+//		int b = 20;
+//		std::shared_ptr<int> px = std::make_shared<int>(b);
+//		pb = px;//引用计数-1,pa.use_count() = 1; pb.use_count() = px.use_count() = 2;
+//	
+//	unique_ptr: 同一时刻只能有一个unique_ptr指向给定对象（通过禁止构造拷贝、只有移动语义来实现）
+//		指向对象的析构时机：智能指针析构时。1.调用reset() 2.调用reset(new xxx()),旧对象被析构 3.赋值nullptr
+//		注意：调用release()只是放弃内部对象的所有权并不会释放内存。
+//		注意：unique_ptr对于数组的管理可以直接这样，unique_ptr<int[]> p(new int[12]),这时析构会调用delete[],不会造成内存泄露
+//		int main() {
+//		    {
+//		        std::unique_ptr<int> uptr(new int(10));  //绑定动态对象
+//		        //std::unique_ptr<int> uptr2 = uptr;  //不能賦值
+//		        //std::unique_ptr<int> uptr2(uptr);  //不能拷貝
+//		        std::unique_ptr<int> uptr2 = std::move(uptr); //轉換所有權
+//		        uptr2.release(); //释放所有权
+//		    }
+//		}
+//	
+//	weak_ptr: 为协助shared_prt工作引入的一种智能指针，没有重载operator*和->,仅作为观测者观测资源使用。
+//		weak_ptr可以从一个shared_ptr或weak_ptr对象构造，但是不会引起引用计数+1
+//		expire()等价于use_count() == 0
+//		lock()可以获取一个可用的shared_ptr,从而操作资源，但当expire() = true时返回一个储存空指针的shared_ptr.
+//		int main() {
+//		        std::shared_ptr<int> sh_ptr = std::make_shared<int>(10);
+//		        std::weak_ptr<int> wp(sh_ptr);
+//		
+//		        std::cout << "weak_ptr: " <<  wp.use_count() << std::endl;  //1
+//		        std::cout << "sh_ptr: " <<  sh_ptr.use_count() << std::endl;//1
+//		
+//		        if(!wp.expired()){
+//				std::shared_ptr<int> sh_ptr2 = wp.lock(); //get another shared_ptr
+//			    	*sh_ptr = 100;
+//		
+//				std::cout << "weak_ptr: " <<  wp.use_count() << std::endl;    //2
+//				std::cout << "sh_ptr: " <<  sh_ptr.use_count() << std::endl;  //2
+//				std::cout << "sh_ptr2: " <<  sh_ptr2.use_count() << std::endl;//2
+//			}
+//		}

@@ -310,3 +310,31 @@ std::ostream &print(std::ostream &, const QueryResult &);
 //剩余比较复杂的eval函数定义在Query.cpp中
 
 #endif
+
+
+
+//=============================================附录==================================================
+//auto: 由编译器推断表达式所属的类型
+//	* 作用: 将表达式的值赋值给一个变量，但不清楚表达式的类型
+//	* 引用类型auto推断为引用的对象的类型
+//		int i = 0, &r = i;
+//		auto a = r;  //a是一个整数
+//	* auto通常忽略顶层const保留底层const
+//		const int ci = i, &cr = ci;
+//		auto c = cr; //a是一个整数，cr是ci的别名，而ci是一个顶层const
+//
+//decltype: 选择并返回操作数的类型，编译器分析表达式类型并不实际计算表达式
+//	作用: 用表达式推断出的类型定义自己的变量，但不想用表达式的值初始化
+//	* 如果表达式是一个变量，返回变量类型，包括顶层const和引用类型
+//		cosnt int ci = 0, &cj = ci;
+//		decltype(ci) x = 0; //x是cosnt int
+//		decltype(cj) y = x; //y是const int &, y绑定到x
+//	* 转变引用类型
+//		int i = 42, &r = i;
+//		decltype(r+0) b; //b是int
+//	* 表达式是解引用，得到引用类型
+//		int i = 42, *p = i;
+//		decltype(*p) x = i; //x是int &
+//	* 表达式是加上括号的变量，得到引用类型
+//		int i = 42;
+//		decltype((i)) d; //错误，d是int &, 必须初始化
