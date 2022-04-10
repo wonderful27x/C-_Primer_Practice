@@ -36,16 +36,19 @@
 //
 //
 //三.动态内存
-//	智能指针shared_ptr,make_shared
+//	智能指针shared_ptr,make_shared,weak_ptr
+//	智能指针注意事项
 //	智能指针也是模板
 //	引用计数
 //	智能指针智能用于动态内存
+//	new、malloc和allocator
 //
 //
 //四.其他
 //	局部静态对象
 //	auto,推演
 //	范围for循环
+//	lambda表达式和函数对象
 
 
 
@@ -103,7 +106,19 @@
 //如果成员函数是非虚函数，解析过程发生在编译时
 //普通函数不使用时可以不提供定义，但是虚函数必须提供定义
 
-//名字查找与继承-函数调用的解析过程
+//普通类对象的名字查找(page 254)
+//	* 类的定义分两步:
+//		* 首先编译成员的声明
+//		* 直到类全部可见后才编译函数体
+//	* 用于类成员声明中的名字查找
+//		* 声明中使用的类型名，如成员类型、函数返回类型或参数类型的名字都必须在使用前可见，
+//		* 如果使用的类型名Typename在类的内部使用之前的域没有定义，则在定义类的作用域类定义之前的域继续查找
+//	* 成员定义中的普通块作用域的名字查找
+//		* 在函数体内使用名字之前的域查找
+//		* 如果没有找到，在类内找，类的全部成员都被考虑
+//		* 类内也没有找到，在函数定义之前的作用域找
+
+//函数名字查找与继承-函数调用的解析过程
 //假设Query_base *q = new NotQuery(); q->eval(file);
 //1.首先确定q的静态类型，静态类型为Query_base
 //2.在q的静态类型中查找eval,如果找不到，则依次在直接基类中不断查找直到到达继承链顶端，找不到编译器报错
@@ -338,3 +353,184 @@ std::ostream &print(std::ostream &, const QueryResult &);
 //	* 表达式是加上括号的变量，得到引用类型
 //		int i = 42;
 //		decltype((i)) d; //错误，d是int &, 必须初始化
+//
+//
+//容器迭代器与算法
+//	* 容器操作: 注意容器是模板，每个实例都有独属它自己的内部类型,如iterator
+//		* 成员
+//			* iterator: 此容器迭代器类型
+//			* cosnt_iterator: 元素只读迭代器
+//			* size_type: 无符号整型，足够保存容器最大可能容量大小
+//			* difference_type: 带符号整型，足够保存两个迭代器之间的距离
+//			* value_type: 元素类型
+//		* 方法
+//			* size(): 元素数目（forward_list不支持）
+//			* max_size(): 可保存的最大元素数目
+//			* empty(): 是否存储了元素
+//			* insert(args): 将args中的元素拷贝到容器
+//			* emplace(inits): 使用inits构造容器的一个元素，注意会调用构造函数而不是拷贝元素
+//			* erase(args): 删除args指定元素
+//			* clear(): 删除所有元素
+//		* 运算
+//			* ==,!=: 所有容器都支持相等和不相等运算
+//			* <, <=, >, >=: 关系运算，无序关联容器不支持
+//	* 迭代器
+//		* 作用
+//			* 提供访问容器的公共接口，不同容器根据特性有不同的实现
+//			* 迭代器的基本作用就是遍历，所有容器迭代器都定义了递增运算符，从当前元素移动到下一元素
+//		* 迭代器范围(左闭右开规则,两迭代器需指向同一容器): 
+//			* begin为前向迭代器指向范围的第一个元素，
+//			* end为尾后迭代器指向范围最后一个元素之后的位置,不能解引用
+//			* begin == end 范围为空
+//			* begin != end 范围至少有一个元素
+//		* 两类迭代器
+//			* const_iterator:只能读元素，不能写元素
+//			* iterator:对元素可读也可写
+//			* 如果容器元素是const只能使用const_iterator,否则二者都可以使用
+//			* 加上前缀r.cbegin()返回const_iterator类型迭代器，不加前缀r.begin(),返回类型依赖容器元素类型
+//		* 注意!!!
+//			* 添加删除元素操作可能使指向容器的指针、引用、或迭代器失效，失效将不再表示任何元素
+//			* 所以有添加删除操作后应该重新获取迭代器
+//	* 顺序容器: 这种顺序不依赖于元素的值，而是指元素加入容器时的位置
+//		* 常用容器
+//			* vector: 可变大小数组，随机访问，尾部之外插入或删除元素可能很慢
+//			* deque: 双端队列，随机访问，头尾插入删除元素很快
+//			* list: 双向链表，只支持双向顺序访问，任何位置插入删除都很快
+//			* forward_list: 单项链表，只支持单向顺序访问，任何位置插入删除都很快
+//			* array: 固定大小数组，随机访问，不能添加和删除元素
+//			* string: 于vector相似
+//		* 添加元素
+//			* push_back(t): 尾部插入元素,forward_list不支持
+//			* empplace_back(args): 尾部构建元素,forward_list不支持
+//			* push_front(t): 头部插入元素,vector/string不支持
+//			* emplace_front(args): 头部构建元素,vector/string不支持
+//	* 注意:
+//		* 用对象初始化容器，或将一个对象插入容器时，放入的是元素的拷贝	
+//	* 适配器: 标准库通用概念，使一种事物的行为看起来像两一种事物的一种机制
+//		* 容器、迭代器、函数都有适配器
+//		* 如插入迭代器就是一种容器适配器
+//	* 算法
+//		* 注意算法本身永远不会执行容器的操作，算法运行在迭代器之上，执行迭代器的操作
+//		* 算法永远不会改变底层容器的大小，因此永远不会直接添加或删除元素
+//		* 但可以改变元素的值，也可以在容器中移动元素，
+//		* 普通迭代器一般可以访问元素或修改元素的值，但是没有插入删除的操作，但是可以构造如插入迭代器来让算法可以向容器插入元素
+//	* 关联容器: 通过关键字进行存取数据，关联容器也可以是有序的(对关键字有序)
+//		* 常用容器
+//			* map: 关联数组，保存关键字-值对,有序,不可重复关键字
+//			* set: 只保存关键字,有序，不可重复关键字
+//			* multimap: 关键字可重复的map,有序
+//			* multiset: 关键字不可重复的set,有序
+//			* unordered_map: 用哈希函数组织的map
+//			* unordered_set: 用哈希函数组织的set
+//			* unordered_multimap: 用哈希函数组织的multimap
+//			* unordered_multiset: 用哈希函数组织的multiset
+//		* pair: 是标准库类型，它保存两个成员，分别是first和second
+//		* 关联容器成员
+//			* key_type: 关键字类型
+//			* value_type: 对于set和key_type相同，对于map为pair<const key_type,mapped_type>
+//			* mapped_type: 关键字关联的类型，只适用于map！！！
+//		* 关联容器对关键字的要求
+//			* 有序容器: 关键字必须定义元素比较的方法，默认标准库使用关键字类型的<运算符,所以默认是升序
+//			* 无序容器: 默认使用==运算符比较元素；使用hash<key_type>模板生成每个元素的哈希值，自定义类型必须特例化hash模板，内置类型不需要标准实现了
+//		* 注意: 
+//			* 关联容器的关键字是const的，不能被改变
+//				* 对于map,value_type是pair<const key_type,mapped_type>,可以改变pair的值，但永远不能改变关键字的值
+//				* 对于set，关联的关键字也是const的
+//			* insert插入元素，如果关键字已经存在，insert什么也不做，返回false
+//			* map下标运算
+//				* 下标运算符[]接收一个关键字,获取关键字关联的值，如果关键字不在map中，
+//				* 则会创建这样一个key-value插入map中，value进行值初始化
+//				* 如果value是内置类型则为0,否则由类默认初始化
+//				* 因为下标操作可能插入元素，所以下标操作只能对非const map使用
+//				* 假设有个map<string,int> mp,string key = "age",执行mp[key] = 10 流程如下
+//				* 1.mp中搜索关键字age,没有找到
+//				* 2.将创建一个新的key-value键值对age-0插入mp，key是const string
+//				* 3.提取出新插入的元素，将10赋值给它
+//				* 也就是说，对于上面的例子，当关键字不存在时，mp[key]操作一定会使容器有一个age-0的元素
+//				* 如果仅仅是想确定容器是否有该元素，应该使用find
+//lambda表达式和函数对象: 
+//	* lambda表达式: [capture list] (parameter list) -> return type { function body }
+//		* capture list: 捕获列表，用于捕获lambda表达式所在函数中的局部变量
+//		* parameter list: 参数列表
+//		* return type: 返回类型
+//		* function body: 函数体
+//		* 值捕获: 被捕获的变量的值在lambda创建时拷贝，而不是调用时拷贝
+//		* 引用捕获: 必须保证在lambda执行时捕获的变量是存在的
+//	* 函数对象: 定义了调用运算符()的类的对象，能像函数一样被调用。lambda表达式本质是一个函数对象
+//
+//new、malloc和allocator
+//	* new 表达式: 将内存分配和对象构造组合在一起
+//		1. 调用名为operator new(或operator new[])的标准库函数，分配足够大、原始、未命名的内存空间
+//		2. 调用构造函数构造对象并传入初始值
+//		3. 返回对象指针
+//	* delete 表达式: 将对象析构和内存释放结合在一起
+//		1. 执行对象析构函数
+//		2. 调用名为operator delete(或operator delete[])的标准库函数释放内存空间
+//	* allocator 模板: 分配一块原始的、未构造的内存，帮助我们把内存分配和对象构造分离
+//		* allocator<T> a: 模板
+//		* a.allocator(n): 分配原始内存
+//		* a.construct(p, args): 构造对象
+//		* a.destroy(p): 析构对象
+//		* a.deallocate(p,n): 释放内存
+//	* 定位new: page 409 729
+//		* 和allocator的construct类似，定位new允许我们在一个特定、于先分配的内存地址上构造对象
+//	* 注意: 
+//		* 我们可以重载operator new和operator delete来控制内存分配细节，但是我们无法自定义new和delete表达式的行为
+//		* operator new和operator delete是标准库普通函数，可以直接调用，他们的行为和allocator的allocate和dleallocate类似，
+//		负责分配释放内存，但不会构造和销毁对象,这时对象的构造需要借助定位new，析构需要直接调用析构函数
+//		* 直接调用析构函数只会销毁对象，不会释放内存，者也是它和delete的区别
+//	* malloc和free: c语言中用于分配和释放内存，自定义的operator new和operator delete可以借助它们来完成
+//
+//智能指针
+//	作用：简化指针的使用，避免忘记delete或程序异常catch时忘记释放内存造成内存泄露
+//	原理：利用RALL（资源获取即初始化）的技术对普通指针进行封装，智能指针实质是一个对象，在析构时对指针进行释放。
+//	注意：智能指针只能用来保存堆上分配的内存地址！
+//	link: https://www.cnblogs.com/wxquare/p/4759020.html
+//	
+//	shared_ptr: 多个指针指向相同的对象，使用引用计数，初始化和拷贝构造引用计数+1，赋值和析构引用计数-1，当为0时删除指向的堆内存
+//		注意：不要用同一个原始指针初始化多个shared_ptr,会造成二次释放同一内存
+//		注意：避免循环引用，会造成内存无法释放。(weak_ptr可以解决这个问题,即A和B内部都只持有对方的weak_ptr)
+//		注意：shared_ptr析构时默认调用delete,所以像std::shared_ptr<int> p(new int[12])会造成内存泄露，需要自定义析构
+//		void deleter(int *x){delete[] x;} std::shared_ptr<int> p(new int[12],deleter);
+//		线程安全性：1.多线程调用不同shared_ptr对象成员函数安全；2.多线程同时读同一个shared_ptr对象安全；3.多线程对同一个shared_ptr对象进行读和写不安全。
+//		int a = 10;
+//		std::shared_ptr<int> pa = std::make_shared<int>(a);//引用计数+1
+//		std::shared_ptr<int> pb(pa);  //copy,引用计数+1,pa.use_count() = pb.use_count() = 2;
+//		int b = 20;
+//		std::shared_ptr<int> px = std::make_shared<int>(b);
+//		pb = px;//引用计数-1,pa.use_count() = 1; pb.use_count() = px.use_count() = 2;
+//	
+//	unique_ptr: 同一时刻只能有一个unique_ptr指向给定对象（通过禁止构造拷贝、只有移动语义来实现）
+//		指向对象的析构时机：智能指针析构时。1.调用reset() 2.调用reset(new xxx()),旧对象被析构 3.赋值nullptr
+//		注意：调用release()只是放弃内部对象的所有权并不会释放内存。
+//		注意：unique_ptr对于数组的管理可以直接这样，unique_ptr<int[]> p(new int[12]),这时析构会调用delete[],不会造成内存泄露
+//		int main() {
+//		    {
+//		        std::unique_ptr<int> uptr(new int(10));  //绑定动态对象
+//		        //std::unique_ptr<int> uptr2 = uptr;  //不能賦值
+//		        //std::unique_ptr<int> uptr2(uptr);  //不能拷貝
+//		        std::unique_ptr<int> uptr2 = std::move(uptr); //轉換所有權
+//		        uptr2.release(); //释放所有权
+//		    }
+//		}
+//	
+//	weak_ptr: 为协助shared_prt工作引入的一种智能指针，没有重载operator*和->,仅作为观测者观测资源使用。
+//		weak_ptr可以从一个shared_ptr或weak_ptr对象构造，但是不会引起引用计数+1
+//		expire()等价于use_count() == 0
+//		lock()可以获取一个可用的shared_ptr,从而操作资源，但当expire() = true时返回一个储存空指针的shared_ptr.
+//		int main() {
+//		        std::shared_ptr<int> sh_ptr = std::make_shared<int>(10);
+//		        std::weak_ptr<int> wp(sh_ptr);
+//		
+//		        std::cout << "weak_ptr: " <<  wp.use_count() << std::endl;  //1
+//		        std::cout << "sh_ptr: " <<  sh_ptr.use_count() << std::endl;//1
+//		
+//		        if(!wp.expired()){
+//				std::shared_ptr<int> sh_ptr2 = wp.lock(); //get another shared_ptr
+//			    	*sh_ptr = 100;
+//		
+//				std::cout << "weak_ptr: " <<  wp.use_count() << std::endl;    //2
+//				std::cout << "sh_ptr: " <<  sh_ptr.use_count() << std::endl;  //2
+//				std::cout << "sh_ptr2: " <<  sh_ptr2.use_count() << std::endl;//2
+//			}
+//		}

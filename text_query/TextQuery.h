@@ -27,7 +27,7 @@
 //类的定义分两步：1.首先编译成员的声明 2.直到类全部可见才编译函数体
 //类成员声明的名字查找
 //	类的普通成员类型、函数的返回类和参数类型使用的名字必须使用前可见
-//	如当编译器遇到query函数声明时，它首先在TextQuery类内部使用QueryResult之前(即query函数声明之前),
+//	如当编译器遇到query函数声明中的QueryResult时，它首先在TextQuery类内部使用QueryResult之前(即query函数声明之前),
 //	查找QueryResult的声明，如果没有找到(TextQuery内部没有定义这样的类型)，
 //	编译器到外层作用域(即TextQuery类外面)TextQuery类定义之前查找。
 //成员函数中的名字查找
