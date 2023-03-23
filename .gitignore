@@ -1,0 +1,9 @@
+**/build/
+**/build-*/
+**/.vs/
+**/out/
+
+*.o
+*.a
+*.so
+*.lib
