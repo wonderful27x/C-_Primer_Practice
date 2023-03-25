@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <exception>
+#include <sstream>
 
 namespace tool
 {
@@ -30,19 +31,16 @@ public:
             DumpMode dumpMode = DumpMode::MOPT_ONCE,
             std::streamsize maxDumpSize = INT64_MAX,
             int64_t maxDumpDurationMs = INT64_MAX,
-            uint32_t startOffset = 0
+            uint32_t startOffset = 0,
+            uint32_t intervalNum = 0
             ) :
         _dump_dir(dumpDir),
         _dump_f_name(dumpFilename),
         _dump_mode(dumpMode),
         _start_offset(startOffset),
         _max_dump_size(maxDumpSize),
-        _dump_size(0),
         _max_dump_duration(maxDumpDurationMs),
-        _dump_duration(0),
-        _time_bg(INT64_MAX),
-        _time_tmp(-1),
-        _finish(false)
+        _interval_num(intervalNum)
     {}
 
     virtual ~DumpBase()
@@ -53,21 +51,36 @@ public:
         }
     }
 
+    inline
     int64_t GetDumpDuration()
     {
         return _dump_duration;
     }
 
+    inline
     std::streamsize GetDumpSize()
     {
         return _dump_size;
     }
 
+    inline
     bool Finish()
     {
         return _finish;
     }
-    
+
+    inline
+    int64_t DumpCount()
+    {
+        return _dump_count;
+    }
+
+    inline
+    int64_t WriteCount()
+    {
+        return _write_count;
+    }
+
     // note: if timeNow < 0, _max_dump_duration and _start_offset will not take effert
     std::streamsize Write(const T &dataSource, int64_t timeNow)
     {
@@ -78,6 +91,8 @@ public:
         {
             throw std::string("No support this DumpMode: ") + std::to_string((int)_dump_mode) + " for dir create no implemented!!!";
         }
+
+        _dump_count++;
 
         // jump time offset
         if(timeNow > 0)
@@ -98,7 +113,7 @@ public:
 
         if(_time_bg == INT64_MAX && !_file.is_open())
         {
-            std::string file_path = GetFilePath(dataSource);
+            std::string file_path = GetFilePathPrivate(dataSource);
             LogPrint("Open file for data dumping, file path: " + file_path);
             if(_dump_mode == DumpMode::AUTO_ONCE ||
                     _dump_mode == DumpMode::AUTO_LOOP ||
@@ -126,7 +141,22 @@ public:
         if(_file.is_open())
         {
             _dump_duration = timeNow - _time_bg;
-            if(_dump_duration > _max_dump_duration || _dump_size >= _max_dump_size)
+            if(_dump_duration <= _max_dump_duration && _dump_size < _max_dump_size)
+            {
+                if(!Jump(_dump_count, _write_count, _interval_num, dataSource, timeNow))
+                {
+                    DUMP_DATA_LIST data_list;
+                    GetData(dataSource, data_list);
+                    for(auto dp : data_list)
+                    {
+                        write_size += WriteData(dp.first, dp.second);
+                    }
+                    _dump_size += write_size;
+                    _write_count++;
+                }
+            }
+
+            if(_dump_duration >= _max_dump_duration || _dump_size >= _max_dump_size)
             {
                 _file.close();
                 if(_dump_mode == DumpMode::AUTO_LOOP ||
@@ -139,18 +169,16 @@ public:
                     _finish = true;
                     write_size = -99;
                 }
-                std::string dump_msg = "Dump finish, dump size: " + std::to_string(_dump_size) + " bytes, dump duration: " + std::to_string(_dump_duration) + " ms";
-                LogPrint(dump_msg);
-            }
-            else
-            {
-                DUMP_DATA_LIST data_list;
-                GetData(dataSource, data_list);
-                for(auto dp : data_list)
-                {
-                    write_size += WriteData(dp.first, dp.second);
-                }
-                _dump_size += write_size;
+                std::stringstream sstr;
+                sstr << "Dump finish, dump size: "
+                    << _dump_size
+                    << " bytes, dump duration: "
+                    << _dump_duration
+                    << " ms, dump count: "
+                    << _dump_count
+                    << ", write count: "
+                    << _write_count;
+                LogPrint(sstr.str());
             }
         }
 
@@ -164,11 +192,31 @@ protected:
     virtual std::string GetFilePath(const T &)
     {
         std::string::size_type  position = _dump_f_name.rfind(".");
-        std::string f_name = _dump_f_name.substr(0, position) + "_" + std::to_string((long long)this) + "_" + _dump_f_name.substr(position, _dump_f_name.size() - position);
-        return _dump_dir + f_name;
+        std::stringstream sstr;
+        sstr << _dump_dir
+            << _dump_f_name.substr(0, position)
+            << "_"
+            << this
+            << "_"
+            << _dump_f_name.substr(position, _dump_f_name.size() - position);
+
+        return sstr.str();
     }
 
     virtual void GetData(const T &dataSource, DUMP_DATA_LIST &dataList) = 0;
+
+    /* 1 2 : 2%2  3%2j 4%2  5%2j 6%2  7%2j */
+    /* 2 3 : 3%3  4%3j 5%3j 6%3  7%3j 8%3j 9%3   10%3j 11%3j 12%3 */
+    /* 3 4 : 4%4  5%4j 6%4j 7%4j 8%4  9%4j 10%4j 11%4j 12%4 13%4j 14%4j 15%4j 16%4 */
+    virtual bool Jump(uint64_t currentCount, uint64_t writeCount, uint32_t initIntervalNum, const T &t, int64_t timeNow)
+    {
+        if(initIntervalNum != 0 && (currentCount + initIntervalNum) % (initIntervalNum + 1) != 0)
+        {
+            return true;
+        }
+
+        return false;
+    }
 
     virtual void LogPrint(const std::string &message)
     {
@@ -183,15 +231,31 @@ private:
 
     // note: if (_max_dump_size || _max_dump_duration) stop
     const std::streamsize _max_dump_size;
-    std::streamsize _dump_size;
+    std::streamsize _dump_size = 0;
     const int64_t _max_dump_duration;
-    int64_t _dump_duration;
+    int64_t _dump_duration = 0;
 
-    int64_t _time_bg;
-    int64_t _time_tmp;
+    int64_t _time_bg = INT64_MAX;
+    int64_t _time_tmp = -1;
 
-    bool _finish;
+    bool _finish = false;
 
+    uint32_t _interval_num;
+    int64_t _dump_count = 0;
+    int64_t _write_count = 0;
+
+    inline
+    std::string GetFilePathPrivate(const T &t)
+    {
+        if(_dump_mode == DumpMode::AUTO_APPEND ||
+                _dump_mode == DumpMode::MOPT_APPEND)
+        {
+            return _dump_dir + _dump_f_name;
+        }
+        return GetFilePath(t);
+    }
+
+    inline
     std::streamsize WriteData(const char *data, std::streamsize size)
     {
         if(data == nullptr)

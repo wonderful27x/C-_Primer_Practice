@@ -75,7 +75,6 @@ int test_ListDataDump(long long time)
     return universal_dump_list.Write(dataList, time);
 }
 
-// 循环写，最大写入27字节
 tool::ArrayDumpBaseTemplate<const char *, 9> array_base_dump("./",
         "universal-dump-arraybase.txt",
         tool::DumpMode::MOPT_ONCE,
@@ -88,7 +87,6 @@ int test_ArrayBaseDump(long long time)
     return array_base_dump.Write(data, time);
 }
 
-// 循环写，最大写入27字节
 tool::ArrayDumpY<9> array_dumpy("./",
         "universal-dump-arrayy.txt",
         tool::DumpMode::MOPT_ONCE,
@@ -99,7 +97,6 @@ int test_ArrayDumpY(long long time)
     return array_dumpy.Write(data, time);
 }
 
-// 循环写，最大写入27字节
 tool::ArrayDumpZ<9> array_dumpz("./",
         "universal-dump-arrayz.txt",
         tool::DumpMode::MOPT_ONCE,
@@ -110,18 +107,20 @@ int test_ArrayDumpZ(long long time)
     return array_dumpz.Write(data, time);
 }
 
-// 循环写，最大写入27字节
+// 写一次jump三次, write 8次，dump 29次
 tool::ArrayDumpX<9> array_dumpx("./",
         "universal-dump-arrayx.txt",
         tool::DumpMode::MOPT_ONCE,
-        27,
-        INT64_MAX);
+        72,
+        INT64_MAX,
+        0,
+        3);
 int test_ArrayDumpX(long long time)
 {
     return array_dumpx.Write(data, time);
 }
 
-// 循环写，最大写入27字节
+// 循环写，最大写入90字节
 tool::ArrayDump array_dump("./",
         "universal-dump-array.txt",
         tool::DumpMode::MOPT_LOOP,
