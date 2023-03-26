@@ -28,16 +28,17 @@ class DumpBase
 public:
     DumpBase(const std::string &dumpDir,
             const std::string &dumpFilename,
-            DumpMode dumpMode = DumpMode::MOPT_ONCE,
-            std::streamsize maxDumpSize = INT64_MAX,
-            int64_t maxDumpDurationMs = INT64_MAX,
-            uint32_t startOffset = 0,
-            uint32_t intervalNum = 0
+            const DumpMode dumpMode = DumpMode::MOPT_ONCE,
+            const std::streamsize maxDumpSize = INT64_MAX,
+            const int64_t maxDumpDurationMs = INT64_MAX,
+            const uint32_t startOffset = 0,
+            const uint32_t intervalNum = 0
             ) :
         _dump_dir(dumpDir),
         _dump_f_name(dumpFilename),
         _dump_mode(dumpMode),
         _start_offset(startOffset),
+        _start_offset_ctr(startOffset),
         _max_dump_size(maxDumpSize),
         _max_dump_duration(maxDumpDurationMs),
         _interval_num(intervalNum)
@@ -97,24 +98,38 @@ public:
         // jump time offset
         if(timeNow > 0)
         {
-            if(_start_offset != 0 && _time_tmp == -1)
+            if(_start_offset_ctr != 0 && _time_tmp == -1)
             {
                 _time_tmp = timeNow;
             }
-            if(timeNow - _time_tmp < _start_offset)
+            if(timeNow - _time_tmp < _start_offset_ctr)
             {
                 return 0;
             }
             else
             {
-                _start_offset = 0;
+                _start_offset_ctr = 0;
             }
         }
 
         if(_time_bg == INT64_MAX && !_file.is_open())
         {
             std::string file_path = GetFilePathPrivate(dataSource);
-            LogPrint("Open file for data dumping, file path: " + file_path);
+            std::stringstream sstr;
+            sstr << "Open file for data dumping, dump mode: "
+                << (int)_dump_mode
+                << " , time offset: "
+                << _start_offset
+                << " ms, max dump size: "
+                << _max_dump_size
+                << " , max dump duration: "
+                << _max_dump_duration
+                << " , interval number: "
+                << _interval_num
+                << " , file path: "
+                << GetFilePathPrivate(dataSource);
+            LogPrint(sstr.str());
+
             if(_dump_mode == DumpMode::AUTO_ONCE ||
                     _dump_mode == DumpMode::AUTO_LOOP ||
                     _dump_mode == DumpMode::MOPT_ONCE ||
@@ -225,9 +240,10 @@ protected:
 
 private:
     std::fstream _file;
-    DumpMode _dump_mode;
+    const DumpMode _dump_mode;
 
-    uint32_t _start_offset;
+    const uint32_t _start_offset;
+    uint32_t _start_offset_ctr;
 
     // note: if (_max_dump_size || _max_dump_duration) stop
     const std::streamsize _max_dump_size;
@@ -240,7 +256,7 @@ private:
 
     bool _finish = false;
 
-    uint32_t _interval_num;
+    const uint32_t _interval_num;
     int64_t _dump_count = 0;
     int64_t _write_count = 0;
 

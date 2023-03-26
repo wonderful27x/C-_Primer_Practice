@@ -56,7 +56,7 @@ DumpData dumpData(data, 9);
 // 最大写入9个字节
 tool::UniversalDump<DumpData> universal_dump("./",
         "universal-dumpdata.txt",
-        tool::DumpMode::MOPT_ONCE,
+        tool::DumpMode::MOPT_APPEND,
         9);
 int test_UniversalDump(long long time)
 {
