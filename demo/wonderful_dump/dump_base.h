@@ -20,6 +20,24 @@ enum class DumpMode
     MOPT_APPEND     //if dir no exist no write, otherwise, then append data to the file 
 };
 
+struct JumpCtrVars
+{
+    JumpCtrVars(uint64_t currentCount,
+            uint64_t writeCount,
+            uint32_t initIntervalNum,
+            int64_t time) :
+        _current_count(currentCount),
+        _write_count(writeCount),
+        _init_interval_num(initIntervalNum),
+        _time(time)
+    {}
+
+    uint64_t _current_count;
+    uint64_t _write_count;
+    uint32_t _init_interval_num;
+    int64_t _time;
+};
+
 using DUMP_DATA_LIST = std::vector<std::pair<const char *, std::streamsize>>;
 
 template<typename T>
@@ -158,7 +176,8 @@ public:
             _dump_duration = timeNow - _time_bg;
             if(_dump_duration <= _max_dump_duration && _dump_size < _max_dump_size)
             {
-                if(!Jump(_dump_count, _write_count, _interval_num, dataSource, timeNow))
+                JumpCtrVars jumpCtrVars(_dump_count, _write_count, _interval_num, timeNow);
+                if(!Jump(jumpCtrVars, dataSource))
                 {
                     DUMP_DATA_LIST data_list;
                     GetData(dataSource, data_list);
@@ -223,9 +242,10 @@ protected:
     /* 1 2 : 2%2  3%2j 4%2  5%2j 6%2  7%2j */
     /* 2 3 : 3%3  4%3j 5%3j 6%3  7%3j 8%3j 9%3   10%3j 11%3j 12%3 */
     /* 3 4 : 4%4  5%4j 6%4j 7%4j 8%4  9%4j 10%4j 11%4j 12%4 13%4j 14%4j 15%4j 16%4 */
-    virtual bool Jump(uint64_t currentCount, uint64_t writeCount, uint32_t initIntervalNum, const T &t, int64_t timeNow)
+    virtual bool Jump(const JumpCtrVars &jumpCtrVars, const T &t)
     {
-        if(initIntervalNum != 0 && (currentCount + initIntervalNum) % (initIntervalNum + 1) != 0)
+        if(jumpCtrVars._init_interval_num != 0
+                && (jumpCtrVars._current_count + jumpCtrVars._init_interval_num) % (jumpCtrVars._init_interval_num + 1) != 0)
         {
             return true;
         }

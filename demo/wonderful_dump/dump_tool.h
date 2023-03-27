@@ -27,7 +27,7 @@ protected:
 //特例化模板
 //可直接用于裸数据的dump, 将char指针和size封装到vector<pair>中
 template<>
-class UniversalDump<DUMP_DATA_LIST> : public DumpBase<DUMP_DATA_LIST>
+class UniversalDump<DUMP_DATA_LIST> final : public DumpBase<DUMP_DATA_LIST>
 {
 public:
     using DumpBase<DUMP_DATA_LIST>::DumpBase;
