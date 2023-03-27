@@ -136,16 +136,16 @@ public:
             std::stringstream sstr;
             sstr << "Open file for data dumping, dump mode: "
                 << (int)_dump_mode
-                << " , time offset: "
+                << ", time offset: "
                 << _start_offset
                 << " ms, max dump size: "
                 << _max_dump_size
-                << " , max dump duration: "
+                << ", max dump duration: "
                 << _max_dump_duration
-                << " , interval number: "
+                << ", interval number: "
                 << _interval_num
-                << " , file path: "
-                << GetFilePathPrivate(dataSource);
+                << ", file path: "
+                << file_path;
             LogPrint(sstr.str());
 
             if(_dump_mode == DumpMode::AUTO_ONCE ||
@@ -211,7 +211,9 @@ public:
                     << " ms, dump count: "
                     << _dump_count
                     << ", write count: "
-                    << _write_count;
+                    << _write_count
+                    << ", file path: "
+                    << GetFilePathPrivate(dataSource);
                 LogPrint(sstr.str());
             }
         }

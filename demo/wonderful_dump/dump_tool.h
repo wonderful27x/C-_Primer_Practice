@@ -92,7 +92,7 @@ public:
     // 重载父类的write
     std::streamsize Write(const char (&arr) [N], int64_t timeNow)
     {
-       return DumpBase<CHAR_POINT_TYPE>::Write(arr, timeNow); 
+       return DumpBase<CHAR_POINT_TYPE>::Write(arr, timeNow);
     }
 
 protected:
@@ -119,7 +119,7 @@ public:
     std::streamsize Write(const char (&arr) [N], int64_t timeNow)
     {
         _size = N;
-        return DumpBase<CHAR_POINT_TYPE>::Write(arr, timeNow); 
+        return DumpBase<CHAR_POINT_TYPE>::Write(arr, timeNow);
     }
 
 protected:
