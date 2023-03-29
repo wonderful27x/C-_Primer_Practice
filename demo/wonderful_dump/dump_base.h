@@ -7,6 +7,8 @@
 #include <exception>
 #include <sstream>
 
+#define ABNORMAL_LOG_TIMES 1
+
 namespace tool
 {
 
@@ -133,20 +135,23 @@ public:
         if(_time_bg == INT64_MAX && !_file.is_open())
         {
             std::string file_path = GetFilePathPrivate(dataSource);
-            std::stringstream sstr;
-            sstr << "Open file for data dumping, dump mode: "
-                << (int)_dump_mode
-                << ", time offset: "
-                << _start_offset
-                << " ms, max dump size: "
-                << _max_dump_size
-                << ", max dump duration: "
-                << _max_dump_duration
-                << ", interval number: "
-                << _interval_num
-                << ", file path: "
-                << file_path;
-            LogPrint(sstr.str());
+            if(_abnormal_log_times > 0)
+            {
+                std::stringstream sstr;
+                sstr << "Open file for data dumping, dump mode: "
+                    << (int)_dump_mode
+                    << ", time offset: "
+                    << _start_offset
+                    << " ms, max dump size: "
+                    << _max_dump_size
+                    << ", max dump duration: "
+                    << _max_dump_duration
+                    << ", interval number: "
+                    << _interval_num
+                    << ", file path: "
+                    << file_path;
+                LogPrint(sstr.str());
+            }
 
             if(_dump_mode == DumpMode::AUTO_ONCE ||
                     _dump_mode == DumpMode::AUTO_LOOP ||
@@ -163,10 +168,14 @@ public:
             if(_file.is_open())
             {
                 _time_bg = timeNow;
+                _abnormal_log_times = ABNORMAL_LOG_TIMES;
             }
             else
             {
-                LogPrint("Faild to open file for data dumping, file path: " + file_path);
+                if((_abnormal_log_times--) > 0)
+                {
+                    LogPrint("Failed to open file for data dumping, file path: " + file_path);
+                }
             }
         }
 
@@ -277,6 +286,7 @@ private:
     int64_t _time_tmp = -1;
 
     bool _finish = false;
+    int _abnormal_log_times = ABNORMAL_LOG_TIMES;
 
     const uint32_t _interval_num;
     int64_t _dump_count = 0;
