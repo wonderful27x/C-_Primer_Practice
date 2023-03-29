@@ -101,7 +101,7 @@ public:
     }
 
     // note: if timeNow < 0, _max_dump_duration and _start_offset will not take effert
-    std::streamsize Write(const T &dataSource, int64_t timeNow)
+    std::streamsize Write(const T &dataSource, int64_t timeNow = -1)
     {
         // TODO
         if(_dump_mode == DumpMode::AUTO_ONCE ||

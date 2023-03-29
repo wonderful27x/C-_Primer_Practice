@@ -49,7 +49,8 @@ class ArrayDumpBaseTemplate : public DumpBase<T>
 public:
     using DumpBase<T>::DumpBase;
 
-    std::streamsize Write(const char (&arr) [N], int64_t timeNow)
+    // 重载父类的write
+    std::streamsize Write(const char (&arr) [N], int64_t timeNow = -1)
     {
         return DumpBase<T>::Write(arr, timeNow); 
     }
@@ -90,7 +91,7 @@ public:
     using DumpBase<CHAR_POINT_TYPE>::DumpBase;
 
     // 重载父类的write
-    std::streamsize Write(const char (&arr) [N], int64_t timeNow)
+    std::streamsize Write(const char (&arr) [N], int64_t timeNow = -1)
     {
        return DumpBase<CHAR_POINT_TYPE>::Write(arr, timeNow);
     }
@@ -116,7 +117,7 @@ public:
     // 重载父类的方法
     // 成员函数模板
     template<unsigned N>
-    std::streamsize Write(const char (&arr) [N], int64_t timeNow)
+    std::streamsize Write(const char (&arr) [N], int64_t timeNow = -1)
     {
         _size = N;
         return DumpBase<CHAR_POINT_TYPE>::Write(arr, timeNow);

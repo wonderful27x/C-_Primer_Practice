@@ -53,14 +53,14 @@ const char data[9] = {'a','b','c','d','e','f','g','h','i'};
 std::vector<std::pair<const char *, std::streamsize>> dataList;
 DumpData dumpData(data, 9);
 
-// 最大写入9个字节
+// 最大写入9个字节, 使用append模式, 不使用时间
 tool::UniversalDump<DumpData> universal_dump("./",
         "universal-dumpdata.txt",
         tool::DumpMode::MOPT_APPEND,
         9);
 int test_UniversalDump(long long time)
 {
-    return universal_dump.Write(dumpData, time);
+    return universal_dump.Write(dumpData);
 }
 
 // 偏移1秒，最多写入5秒大概是 5*10*9 = 450 bytes
@@ -75,11 +75,11 @@ int test_ListDataDump(long long time)
     return universal_dump_list.Write(dataList, time);
 }
 
+// 最大写入27字节
 tool::ArrayDumpBaseTemplate<const char *, 9> array_base_dump("./",
         "universal-dump-arraybase.txt",
         tool::DumpMode::MOPT_ONCE,
-        27,
-        INT64_MAX);
+        27);
 int test_ArrayBaseDump(long long time)
 {
     // for test
@@ -90,8 +90,7 @@ int test_ArrayBaseDump(long long time)
 tool::ArrayDumpY<9> array_dumpy("./",
         "universal-dump-arrayy.txt",
         tool::DumpMode::MOPT_ONCE,
-        27,
-        INT64_MAX);
+        27);
 int test_ArrayDumpY(long long time)
 {
     return array_dumpy.Write(data, time);
@@ -100,14 +99,13 @@ int test_ArrayDumpY(long long time)
 tool::ArrayDumpZ<9> array_dumpz("./",
         "universal-dump-arrayz.txt",
         tool::DumpMode::MOPT_ONCE,
-        27,
-        INT64_MAX);
+        27);
 int test_ArrayDumpZ(long long time)
 {
     return array_dumpz.Write(data, time);
 }
 
-// 写一次jump三次, write 8次，dump 29次
+// 写一次jump三次, 最大写72字节，write 8次，dump 29次
 tool::ArrayDumpX<9> array_dumpx("./",
         "universal-dump-arrayx.txt",
         tool::DumpMode::MOPT_ONCE,
@@ -120,15 +118,14 @@ int test_ArrayDumpX(long long time)
     return array_dumpx.Write(data, time);
 }
 
-// 循环写，最大写入90字节
+// 循环写，最大写入90字节, 不使用时间
 tool::ArrayDump array_dump("./",
         "universal-dump-array.txt",
         tool::DumpMode::MOPT_LOOP,
-        90,
-        INT64_MAX);
+        90);
 int test_ArrayDump(long long time)
 {
-    return array_dump.Write(data, time);
+    return array_dump.Write(data);
 }
 
 int main()
