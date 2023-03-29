@@ -166,7 +166,10 @@ public:
             }
             else
             {
-                LogPrint("Faild to open file for data dumping, file path: " + file_path);
+                if((_log_times--) > 0)
+                {
+                    LogPrint("Faild to open file for data dumping, file path: " + file_path);
+                }
             }
         }
 
@@ -277,6 +280,7 @@ private:
     int64_t _time_tmp = -1;
 
     bool _finish = false;
+    int _log_times = 1;
 
     const uint32_t _interval_num;
     int64_t _dump_count = 0;
